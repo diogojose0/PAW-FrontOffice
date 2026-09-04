@@ -1,0 +1,16 @@
+main.container {
+  min-height: calc(100vh - 140px);
+}
+
+.cart-preview-dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.cart-preview-menu {
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.cart-preview-dropdown .dropdown-menu {
+  margin-top: 0;
+}

@@ -1,0 +1,49 @@
+<div class="reviews-sheet-backdrop" *ngIf="open" (click)="close()">
+  <section
+    class="reviews-sheet card border-0 rounded-4 soft-shadow"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reviewsSheetTitle"
+    (click)="stopClose($event)"
+  >
+    <div class="reviews-sheet-handle" aria-hidden="true"></div>
+
+    <div class="card-body border-bottom">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <h2 id="reviewsSheetTitle" class="h5 fw-bold mb-1">
+            {{ title }}
+          </h2>
+
+          <p class="text-muted small mb-0">
+            {{ stats.reviewCount }} review(s)
+            <span *ngIf="stats.reviewCount > 0">
+              · {{ stats.averageRating | number: '1.1-1' }}/5 average
+            </span>
+          </p>
+        </div>
+
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="close()">
+          <i class="bi bi-x-lg me-1"></i>
+          Close
+        </button>
+      </div>
+    </div>
+
+    <div class="reviews-sheet-content">
+      <div class="d-grid gap-3" *ngIf="reviews.length > 0; else noReviews">
+        <app-review-card
+          *ngFor="let review of reviews"
+          [review]="review"
+        ></app-review-card>
+      </div>
+
+      <ng-template #noReviews>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-chat-square-heart display-6 d-block mb-2"></i>
+          No reviews yet.
+        </div>
+      </ng-template>
+    </div>
+  </section>
+</div>

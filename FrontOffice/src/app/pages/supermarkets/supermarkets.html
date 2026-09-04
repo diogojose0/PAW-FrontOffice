@@ -1,0 +1,110 @@
+<section class="mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h1 class="h2 fw-bold mb-1">Supermarkets</h1>
+      <p class="text-muted mb-0">
+        Explore approved local supermarkets and their available delivery methods.
+      </p>
+    </div>
+
+    <span class="badge text-bg-dark fs-6">
+      {{ supermarkets.length }} supermarkets
+    </span>
+  </div>
+</section>
+
+<section class="card border-0 soft-shadow rounded-4 mb-4">
+  <div class="card-body">
+    <form class="row g-3 align-items-end" (ngSubmit)="applySearch()">
+      <div class="col-md-9">
+        <label for="search" class="form-label fw-semibold">
+          Search
+        </label>
+        <input
+          id="search"
+          name="search"
+          type="text"
+          class="form-control"
+          [(ngModel)]="search"
+          placeholder="Search by supermarket name or location"
+        />
+      </div>
+
+      <div class="col-md-3 d-grid gap-2">
+        <button type="submit" class="btn btn-dark" [disabled]="loading">
+          <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+          Search
+        </button>
+
+        <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
+          Clear
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div class="alert alert-danger" *ngIf="errorMessage">
+  {{ errorMessage }}
+</div>
+
+<div class="text-center py-5" *ngIf="loading">
+  <div class="spinner-border text-dark"></div>
+  <p class="text-muted mt-3">Loading supermarkets...</p>
+</div>
+
+<section class="row g-4" *ngIf="!loading && supermarkets.length > 0">
+  <div class="col-sm-6 col-lg-3" *ngFor="let supermarket of supermarkets">
+    <div class="card h-100 border-0 soft-shadow rounded-4">
+      <div class="card-body d-flex flex-column">
+        <div class="mb-3">
+          <div class="fs-2 mb-2">
+            <i class="bi bi-shop"></i>
+          </div>
+
+          <h2 class="h5 fw-bold mb-2">
+            {{ supermarket.name }}
+          </h2>
+
+          <p class="text-muted small mb-0">
+            <i class="bi bi-geo-alt me-1"></i>
+            {{ supermarket.location }}
+          </p>
+        </div>
+
+        <div class="mb-3">
+          <span class="badge text-bg-success me-1" *ngIf="hasDeliveryMethod(supermarket, 'pickup')">
+            Pickup: {{ getDeliveryCost(supermarket, 'pickup') | number: '1.2-2' }} €
+          </span>
+
+          <span class="badge text-bg-primary" *ngIf="hasDeliveryMethod(supermarket, 'courier')">
+            Courier: {{ getDeliveryCost(supermarket, 'courier') | number: '1.2-2' }} €
+          </span>
+        </div>
+
+        <p class="text-muted small mb-3" *ngIf="supermarket.openingHours">
+          <i class="bi bi-clock me-1"></i>
+          {{ supermarket.openingHours }}
+        </p>
+
+        <div class="mt-auto d-grid">
+          <a class="btn btn-outline-dark" [routerLink]="['/supermarkets', supermarket._id]">
+            View supermarket
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="text-center py-5" *ngIf="!loading && supermarkets.length === 0 && !errorMessage">
+  <div class="display-5 mb-3">
+    <i class="bi bi-shop"></i>
+  </div>
+
+  <h2 class="h4 fw-bold">No supermarkets found</h2>
+
+  <p class="text-muted">
+    Try changing your search text.
+  </p>
+</section>

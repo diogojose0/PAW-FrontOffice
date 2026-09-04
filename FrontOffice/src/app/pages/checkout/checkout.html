@@ -1,0 +1,235 @@
+<section class="mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h1 class="h2 fw-bold mb-1">Checkout</h1>
+      <p class="text-muted mb-0">Confirm your products and choose the delivery method.</p>
+    </div>
+
+    <span class="badge text-bg-dark fs-6"> {{ getTotalItems() }} items </span>
+  </div>
+</section>
+
+<div class="alert alert-success" *ngIf="successMessage">
+  {{ successMessage }}
+</div>
+
+<div class="alert alert-danger" *ngIf="errorMessage">
+  {{ errorMessage }}
+</div>
+
+<section class="text-center py-5" *ngIf="cartData.items.length === 0 && !createdOrder">
+  <div class="display-5 mb-3">
+    <i class="bi bi-cart"></i>
+  </div>
+
+  <h2 class="h4 fw-bold">Your cart is empty</h2>
+
+  <p class="text-muted">Add products before starting checkout.</p>
+
+  <a routerLink="/products" class="btn btn-dark"> Browse products </a>
+</section>
+
+<section class="card border-0 soft-shadow rounded-4 mb-4" *ngIf="createdOrder">
+  <div class="card-body">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-8">
+        <h2 class="h4 fw-bold mb-2">Order created successfully</h2>
+
+        <p class="text-muted mb-0">
+          Your order was registered and is now waiting for supermarket confirmation.
+        </p>
+
+        <a
+          class="btn btn-outline-dark mt-3"
+          *ngIf="createdOrder"
+          [routerLink]="['/orders', createdOrder.order._id]"
+        >
+          View order details
+        </a>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <div class="text-muted small">Final total</div>
+
+        <div class="display-6 fw-bold text-success">
+          {{ createdOrder.order.finalTotal | number: '1.2-2' }} €
+        </div>
+
+        <div class="text-muted small">Status: {{ createdOrder.order.status }}</div>
+
+        <div class="text-muted small" *ngIf="createdOrder.order.paymentMethod">
+          Payment: {{ createdOrder.order.paymentMethod }} / {{ createdOrder.order.paymentStatus }}
+        </div>
+
+        <div class="text-muted small" *ngIf="createdOrder && createdOrder.order.discountAmount">
+          Discount: -{{ createdOrder.order.discountAmount | number: '1.2-2' }} €
+        </div>
+
+        <div class="text-muted small" *ngIf="createdOrder && createdOrder.order.couponCode">
+          Coupon: {{ createdOrder.order.couponCode }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="row g-4" *ngIf="cartData.items.length > 0">
+  <div class="col-lg-8">
+    <div class="card border-0 soft-shadow rounded-4">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3">Products</h2>
+
+        <div class="border-bottom pb-3 mb-3" *ngFor="let item of cartData.items">
+          <div class="d-flex justify-content-between gap-3">
+            <div>
+              <h3 class="h6 fw-bold mb-1">
+                {{ item.name }}
+              </h3>
+
+              <p class="text-muted small mb-1">
+                {{ item.quantity }} x {{ item.price | number: '1.2-2' }} €
+              </p>
+
+              <span class="badge text-bg-light border">
+                {{ item.categoryName }}
+              </span>
+            </div>
+
+            <div class="text-end flex-shrink-0">
+              <div class="text-muted small">Subtotal</div>
+
+              <div class="fw-bold">{{ item.price * item.quantity | number: '1.2-2' }} €</div>
+            </div>
+          </div>
+        </div>
+
+        <a routerLink="/cart" class="btn btn-outline-secondary"> Edit cart </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card border-0 soft-shadow rounded-4">
+      <div class="card-body">
+        <h2 class="h5 fw-bold mb-3">Order summary</h2>
+
+        <p class="text-muted small mb-2">
+          <i class="bi bi-shop me-1"></i>
+          {{ cartData.supermarketName }}
+        </p>
+
+        <div class="text-center py-3" *ngIf="loadingSupermarket">
+          <div class="spinner-border spinner-border-sm text-dark"></div>
+        </div>
+
+        <div *ngIf="!loadingSupermarket && supermarket">
+          <div class="mb-3">
+            <label class="form-label fw-semibold"> Delivery method </label>
+
+            <select
+              name="deliveryMethod"
+              class="form-select"
+              [(ngModel)]="deliveryMethod"
+              (ngModelChange)="clearCouponPreview()"
+            >
+              <option value="pickup" *ngIf="hasDeliveryMethod('pickup')">Pickup</option>
+
+              <option value="courier" *ngIf="hasDeliveryMethod('courier')">Courier</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold"> Payment method </label>
+
+            <select name="paymentMethod" class="form-select" [(ngModel)]="paymentMethod">
+              <option value="on_delivery">Pay on delivery / pickup</option>
+              <option value="stripe">Pay online with Stripe</option>
+            </select>
+
+            <div class="form-text" *ngIf="paymentMethod === 'stripe'">
+              You will be redirected to Stripe after the order is created.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="couponCode" class="form-label fw-semibold"> Coupon code </label>
+
+            <div class="input-group">
+              <input
+                id="couponCode"
+                name="couponCode"
+                type="text"
+                class="form-control"
+                [(ngModel)]="couponCode"
+                (ngModelChange)="clearCouponPreview()"
+                placeholder="Example: SAVE10"
+              />
+
+              <button
+                type="button"
+                class="btn btn-outline-dark"
+                (click)="applyCoupon()"
+                [disabled]="validatingCoupon"
+              >
+                <span class="spinner-border spinner-border-sm me-1" *ngIf="validatingCoupon"></span>
+                Apply
+              </button>
+            </div>
+
+            <div class="alert alert-success mt-2 mb-0" *ngIf="couponSuccessMessage">
+              {{ couponSuccessMessage }}
+            </div>
+
+            <div class="alert alert-danger mt-2 mb-0" *ngIf="couponErrorMessage">
+              {{ couponErrorMessage }}
+            </div>
+          </div>
+
+          <hr />
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"> Products subtotal </span>
+
+            <strong> {{ getSubtotal() | number: '1.2-2' }} € </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"> Delivery cost </span>
+
+            <strong> {{ getDeliveryCost() | number: '1.2-2' }} € </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2" *ngIf="getCouponDiscount() > 0">
+            <span class="text-muted"> Coupon discount </span>
+
+            <strong class="text-danger"> -{{ getCouponDiscount() | number: '1.2-2' }} € </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3">
+            <span class="fw-bold"> Final total </span>
+
+            <strong class="text-success"> {{ getFinalTotal() | number: '1.2-2' }} € </strong>
+          </div>
+
+          <div class="d-grid">
+            <button
+              type="button"
+              class="btn btn-dark"
+              (click)="createOrder()"
+              [disabled]="creatingOrder"
+            >
+              <span class="spinner-border spinner-border-sm me-2" *ngIf="creatingOrder"></span>
+              {{
+                creatingOrder
+                  ? 'Creating order...'
+                  : paymentMethod === 'stripe'
+                    ? 'Confirm and pay with Stripe'
+                    : 'Confirm order'
+              }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

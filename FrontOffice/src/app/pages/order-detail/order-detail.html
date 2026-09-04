@@ -1,0 +1,249 @@
+<a routerLink="/orders" class="btn btn-outline-secondary btn-sm mb-4">
+  <i class="bi bi-arrow-left me-1"></i>
+  Back to orders
+</a>
+
+<div class="alert alert-success" *ngIf="successMessage">
+  {{ successMessage }}
+</div>
+
+<div class="alert alert-danger" *ngIf="errorMessage">
+  {{ errorMessage }}
+</div>
+
+<div class="text-center py-5" *ngIf="loading">
+  <div class="spinner-border text-dark"></div>
+  <p class="text-muted mt-3">Loading order...</p>
+</div>
+
+<section *ngIf="!loading && order">
+  <section class="card border-0 soft-shadow rounded-4 mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+          <h1 class="h2 fw-bold mb-2">Order #{{ order._id.slice(-6) }}</h1>
+
+          <p class="text-muted mb-1">Created at {{ order.createdAt | date: 'medium' }}</p>
+
+          <p class="text-muted mb-0">
+            <i class="bi bi-shop me-1"></i>
+            {{ getSupermarketName() }}
+          </p>
+        </div>
+
+        <div class="col-md-4 text-md-end">
+          <span class="badge fs-6 mb-2" [ngClass]="getStatusBadgeClass(order.status)">
+            {{ order.status }}
+          </span>
+
+          <div class="display-6 fw-bold text-success">
+            {{ order.finalTotal | number: '1.2-2' }} €
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="row g-4">
+    <div class="col-lg-8">
+      <div class="card border-0 soft-shadow rounded-4">
+        <div class="card-body">
+          <h2 class="h5 fw-bold mb-3">Products</h2>
+
+          <div class="border-bottom pb-3 mb-3" *ngFor="let item of order.items">
+            <div class="d-flex justify-content-between gap-3">
+              <div>
+                <h3 class="h6 fw-bold mb-1">
+                  {{ item.nameSnapshot }}
+                </h3>
+
+                <p class="text-muted small mb-0">
+                  {{ item.quantity }} x {{ item.priceSnapshot | number: '1.2-2' }} €
+                </p>
+              </div>
+
+              <div class="text-end flex-shrink-0">
+                <div class="text-muted small">Subtotal</div>
+
+                <div class="fw-bold">{{ item.subtotal | number: '1.2-2' }} €</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info mb-0" *ngIf="canCancelOrder()">
+            You can cancel this order while it is pending and within the first 5 minutes.
+          </div>
+
+          <div
+            class="alert alert-secondary mb-0"
+            *ngIf="!canCancelOrder() && order.status === 'pending'"
+          >
+            This order can no longer be cancelled from the client area.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-0 soft-shadow rounded-4 mb-4">
+        <div class="card-body">
+          <h2 class="h5 fw-bold mb-3">Summary</h2>
+
+          <p class="text-muted small mb-2">
+            <i class="bi bi-geo-alt me-1"></i>
+            {{ getSupermarketLocation() }}
+          </p>
+
+          <hr />
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"> Items total </span>
+
+            <strong> {{ order.itemsTotal | number: '1.2-2' }} € </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"> Delivery method </span>
+
+            <strong>
+              {{ order.deliveryMethod }}
+            </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted"> Delivery cost </span>
+
+            <strong> {{ order.deliveryCost | number: '1.2-2' }} € </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3">
+            <span class="fw-bold"> Final total </span>
+
+            <strong class="text-success"> {{ order.finalTotal | number: '1.2-2' }} € </strong>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3" *ngIf="order.paymentMethod">
+            <span class="text-muted"> Payment </span>
+
+            <strong> {{ order.paymentMethod }} / {{ order.paymentStatus }} </strong>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-success w-100 mb-2"
+            *ngIf="canPayWithStripe()"
+            (click)="retryStripePayment()"
+            [disabled]="startingPayment"
+          >
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="startingPayment"></span>
+            {{ startingPayment ? 'Opening Stripe...' : 'Pay with Stripe' }}
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-outline-danger w-100"
+            *ngIf="canCancelOrder()"
+            (click)="cancelOrder()"
+            [disabled]="cancelling"
+          >
+            <span class="spinner-border spinner-border-sm me-2" *ngIf="cancelling"></span>
+            {{ cancelling ? 'Cancelling...' : 'Cancel order' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="card border-0 soft-shadow rounded-4" *ngIf="order.delivery">
+        <div class="card-body">
+          <h2 class="h5 fw-bold mb-3">Delivery</h2>
+
+          <p class="text-muted mb-0">
+            Status: <strong>{{ order.delivery.status }}</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="card border-0 soft-shadow rounded-4 mt-4" *ngIf="canReviewOrder()">
+        <div class="card-body">
+          <h2 class="h5 fw-bold mb-3">Review order</h2>
+
+          <div class="text-center py-3" *ngIf="loadingReview">
+            <div class="spinner-border spinner-border-sm text-dark"></div>
+          </div>
+
+          <form *ngIf="!loadingReview" (ngSubmit)="saveReview()">
+            <div class="mb-3">
+              <label for="supermarketRating" class="form-label fw-semibold">
+                Supermarket rating
+              </label>
+
+              <select
+                id="supermarketRating"
+                name="supermarketRating"
+                class="form-select"
+                [(ngModel)]="supermarketRating"
+              >
+                <option *ngFor="let rating of getRatingOptions()" [ngValue]="rating">
+                  {{ rating }} stars
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="supermarketComment" class="form-label fw-semibold">
+                Supermarket comment
+              </label>
+
+              <textarea
+                id="supermarketComment"
+                name="supermarketComment"
+                rows="3"
+                maxlength="500"
+                class="form-control"
+                [(ngModel)]="supermarketComment"
+                placeholder="How was your experience with the supermarket?"
+              ></textarea>
+            </div>
+
+            <div *ngIf="hasCourierToReview()">
+              <hr />
+
+              <div class="mb-3">
+                <label for="courierRating" class="form-label fw-semibold"> Courier rating </label>
+
+                <select
+                  id="courierRating"
+                  name="courierRating"
+                  class="form-select"
+                  [(ngModel)]="courierRating"
+                >
+                  <option *ngFor="let rating of getRatingOptions()" [ngValue]="rating">
+                    {{ rating }} stars
+                  </option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="courierComment" class="form-label fw-semibold"> Courier comment </label>
+
+                <textarea
+                  id="courierComment"
+                  name="courierComment"
+                  rows="3"
+                  maxlength="500"
+                  class="form-control"
+                  [(ngModel)]="courierComment"
+                  placeholder="How was the delivery?"
+                ></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100" [disabled]="savingReview">
+              <span class="spinner-border spinner-border-sm me-2" *ngIf="savingReview"></span>
+              {{ savingReview ? 'Saving...' : review ? 'Update review' : 'Submit review' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>

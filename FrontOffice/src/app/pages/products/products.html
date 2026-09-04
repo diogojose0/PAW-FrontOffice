@@ -1,0 +1,102 @@
+<section class="mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h1 class="h2 fw-bold mb-1">Products</h1>
+      <p class="text-muted mb-0">
+        Search products, filter by category and compare prices from approved supermarkets.
+      </p>
+    </div>
+
+    <span class="badge text-bg-dark fs-6"> {{ products.length }} products </span>
+  </div>
+</section>
+
+<section class="card border-0 soft-shadow rounded-4 mb-4">
+  <div class="card-body">
+    <form class="row g-3 align-items-end" (ngSubmit)="applyFilters()">
+      <div class="col-md-5">
+        <label for="search" class="form-label fw-semibold"> Search </label>
+        <input
+          id="search"
+          name="search"
+          type="text"
+          class="form-control"
+          [(ngModel)]="search"
+          placeholder="Search by product name"
+        />
+      </div>
+
+      <div class="col-md-3">
+        <label for="category" class="form-label fw-semibold"> Category </label>
+        <select
+          id="category"
+          name="category"
+          class="form-select"
+          [(ngModel)]="selectedCategory"
+          [disabled]="loadingCategories"
+        >
+          <option value="">All categories</option>
+          <option *ngFor="let category of categories" [value]="category._id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label for="sort" class="form-label fw-semibold"> Sort </label>
+        <select id="sort" name="sort" class="form-select" [(ngModel)]="selectedSort">
+          <option value="name_asc">Name A-Z</option>
+          <option value="name_desc">Name Z-A</option>
+          <option value="price_asc">Price low-high</option>
+          <option value="price_desc">Price high-low</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-grid gap-2">
+        <button type="submit" class="btn btn-dark" [disabled]="loadingProducts">
+          <span class="spinner-border spinner-border-sm me-2" *ngIf="loadingProducts"></span>
+          Search
+        </button>
+
+        <button type="button" class="btn btn-outline-secondary" (click)="clearFilters()">
+          Clear
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div class="alert alert-danger" *ngIf="errorMessage">
+  {{ errorMessage }}
+</div>
+<div class="alert alert-success" *ngIf="successMessage">
+  {{ successMessage }}
+</div>
+
+<div class="text-center py-5" *ngIf="loadingProducts">
+  <div class="spinner-border text-dark"></div>
+  <p class="text-muted mt-3">Loading products...</p>
+</div>
+
+<section class="row g-4" *ngIf="!loadingProducts && products.length > 0">
+  <div class="col-md-6 col-lg-3" *ngFor="let product of products">
+    <app-product-card
+      [product]="product"
+      [showSupermarketInfo]="true"
+      (addProduct)="addToCart($event)"
+    ></app-product-card>
+  </div>
+</section>
+
+<section
+  class="text-center py-5"
+  *ngIf="!loadingProducts && products.length === 0 && !errorMessage"
+>
+  <div class="display-5 mb-3">
+    <i class="bi bi-search"></i>
+  </div>
+
+  <h2 class="h4 fw-bold">No products found</h2>
+
+  <p class="text-muted">Try changing the search text, category or sorting option.</p>
+</section>

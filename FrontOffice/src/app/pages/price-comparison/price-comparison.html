@@ -1,0 +1,156 @@
+<section class="mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h1 class="h2 fw-bold mb-1">Price comparison</h1>
+      <p class="text-muted mb-0">
+        Search a product name and compare all matching products across approved local supermarkets.
+      </p>
+    </div>
+
+    <span class="badge text-bg-dark fs-6" *ngIf="comparison"> {{ comparison.count }} offers </span>
+  </div>
+</section>
+
+<section class="card border-0 soft-shadow rounded-4 mb-4">
+  <div class="card-body">
+    <form class="row g-3 align-items-end" (ngSubmit)="comparePrices()">
+      <div class="col-md-8">
+        <label for="productName" class="form-label fw-semibold"> Product name </label>
+
+        <input
+          id="productName"
+          name="productName"
+          type="text"
+          class="form-control"
+          [(ngModel)]="productName"
+          placeholder="Example: Banana"
+        />
+      </div>
+
+      <div class="col-md-4 d-grid gap-2">
+        <button type="submit" class="btn btn-dark" [disabled]="loading">
+          <span class="spinner-border spinner-border-sm me-2" *ngIf="loading"></span>
+          Compare prices
+        </button>
+
+        <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
+          Clear
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div class="alert alert-danger" *ngIf="errorMessage">
+  {{ errorMessage }}
+</div>
+
+<div class="text-center py-5" *ngIf="loading">
+  <div class="spinner-border text-dark"></div>
+  <p class="text-muted mt-3">Comparing prices...</p>
+</div>
+
+<section *ngIf="!loading && comparison">
+  <div class="card border-0 soft-shadow rounded-4 mb-4" *ngIf="comparison.cheapest">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+          <div class="text-muted small mb-1">Cheapest matching offer for</div>
+
+          <h2 class="h3 fw-bold mb-0">
+            {{ comparison.cheapest.name }}
+          </h2>
+
+          <p class="text-muted mb-0">Search: "{{ comparison.productName }}"</p>
+        </div>
+
+        <div class="col-md-4 text-md-end">
+          <div class="text-muted small">Best price</div>
+
+          <div class="display-6 fw-bold text-success">
+            {{ comparison.cheapest.price | number: '1.2-2' }} €
+          </div>
+
+          <div class="text-muted small">
+            {{ comparison.cheapest.supermarket }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="row g-4" *ngIf="comparison.offers.length > 0">
+    <div class="col-sm-6 col-lg-3" *ngFor="let offer of comparison.offers">
+      <div
+        class="card h-100 rounded-4"
+        [ngClass]="isCheapestOffer(offer) ? 'border-success border-2' : 'border-0 soft-shadow'"
+      >
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+            <div>
+              <h3 class="h5 fw-bold mb-1">
+                {{ offer.name }}
+              </h3>
+
+              <p class="text-muted small mb-1">
+                <i class="bi bi-shop me-1"></i>
+                {{ offer.supermarket.name }}
+              </p>
+
+              <span class="badge text-bg-success" *ngIf="isCheapestOffer(offer)"> Cheapest </span>
+            </div>
+
+            <div class="text-end flex-shrink-0">
+              <div class="text-muted small">Price</div>
+              <div class="fs-3 fw-bold text-success lh-1">
+                {{ offer.price | number: '1.2-2' }} €
+              </div>
+            </div>
+          </div>
+
+          <p class="text-muted small mb-3">
+            <i class="bi bi-geo-alt me-1"></i>
+            {{ offer.supermarket.location }}
+          </p>
+
+          <div class="mb-3">
+            <span class="badge text-bg-warning" *ngIf="offer.stock > 0">
+              Stock: {{ offer.stock }}
+            </span>
+
+            <span class="badge text-bg-secondary" *ngIf="offer.stock <= 0"> Out of stock </span>
+          </div>
+
+          <div class="mt-auto d-grid">
+            <a class="btn btn-outline-dark" [routerLink]="['/supermarkets', offer.supermarket._id]">
+              View supermarket
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<section
+  class="text-center py-5"
+  *ngIf="!loading && searched && !errorMessage && comparison && comparison.offers.length === 0"
+>
+  <div class="display-5 mb-3">
+    <i class="bi bi-search"></i>
+  </div>
+
+  <h2 class="h4 fw-bold">No offers found</h2>
+
+  <p class="text-muted">Try searching another product name.</p>
+</section>
+
+<section class="text-center py-5" *ngIf="!loading && !searched && !comparison && !errorMessage">
+  <div class="display-5 mb-3">
+    <i class="bi bi-bar-chart-line"></i>
+  </div>
+
+  <h2 class="h4 fw-bold">Start comparing prices</h2>
+
+  <p class="text-muted">Enter a product name to compare prices between supermarkets.</p>
+</section>

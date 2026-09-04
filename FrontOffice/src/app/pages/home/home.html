@@ -1,0 +1,133 @@
+<section class="bg-white rounded-4 soft-shadow p-4 p-md-5 mb-4 border">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-7">
+      <span class="badge text-bg-dark mb-3">
+        Smart grocery shopping
+      </span>
+
+      <h1 class="display-5 fw-bold mb-3">
+        Find products, compare prices and order from local supermarkets
+      </h1>
+
+      <p class="lead text-muted mb-4">
+        Explore nearby supermarkets, compare offers for the same product and place your order
+        online with pickup or courier delivery.
+      </p>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a routerLink="/login" class="btn btn-dark btn-lg" *ngIf="!currentUser">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          Login
+        </a>
+
+        <a routerLink="/register" class="btn btn-outline-dark btn-lg" *ngIf="!currentUser">
+          <i class="bi bi-person-plus me-2"></i>
+          Create account
+        </a>
+
+        <a routerLink="/profile" class="btn btn-dark btn-lg" *ngIf="currentUser">
+          <i class="bi bi-person me-2"></i>
+          Go to profile
+        </a>
+      </div>
+
+      <div class="alert alert-success mt-4 mb-0" *ngIf="currentUser">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Logged in as <strong>{{ currentUser.name }}</strong> — {{ currentUser.email }}
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card border-0 bg-light rounded-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">
+            Why use Local Market?
+          </h5>
+
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-light px-0">
+              <i class="bi bi-search me-2 text-primary"></i>
+              Search products easily
+            </li>
+            <li class="list-group-item bg-light px-0">
+              <i class="bi bi-bar-chart-line me-2 text-success"></i>
+              Compare prices across supermarkets
+            </li>
+            <li class="list-group-item bg-light px-0">
+              <i class="bi bi-bag-check me-2 text-warning"></i>
+              Order online in a few clicks
+            </li>
+            <li class="list-group-item bg-light px-0">
+              <i class="bi bi-truck me-2 text-danger"></i>
+              Choose pickup or courier delivery
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="section-title h3 mb-0">Main features</h2>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 soft-shadow border-0 rounded-4">
+        <div class="card-body">
+          <div class="mb-3 fs-2 text-dark">
+            <i class="bi bi-search"></i>
+          </div>
+          <h5 class="card-title fw-bold">Search</h5>
+          <p class="card-text text-muted">
+            Browse products by name, supermarket or category.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 soft-shadow border-0 rounded-4">
+        <div class="card-body">
+          <div class="mb-3 fs-2 text-success">
+            <i class="bi bi-currency-euro"></i>
+          </div>
+          <h5 class="card-title fw-bold">Compare</h5>
+          <p class="card-text text-muted">
+            Check which supermarket offers the best price.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 soft-shadow border-0 rounded-4">
+        <div class="card-body">
+          <div class="mb-3 fs-2 text-primary">
+            <i class="bi bi-cart3"></i>
+          </div>
+          <h5 class="card-title fw-bold">Order</h5>
+          <p class="card-text text-muted">
+            Add products to your cart and place your order online.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 soft-shadow border-0 rounded-4">
+        <div class="card-body">
+          <div class="mb-3 fs-2 text-warning">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <h5 class="card-title fw-bold">Track</h5>
+          <p class="card-text text-muted">
+            See your recent orders and client dashboard information.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

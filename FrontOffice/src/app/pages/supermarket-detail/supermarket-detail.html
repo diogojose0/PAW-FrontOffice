@@ -1,0 +1,181 @@
+<a routerLink="/supermarkets" class="btn btn-outline-secondary btn-sm mb-4">
+  <i class="bi bi-arrow-left me-1"></i>
+  Back to supermarkets
+</a>
+
+<div class="alert alert-danger" *ngIf="errorMessage">
+  {{ errorMessage }}
+</div>
+
+<div class="alert alert-success" *ngIf="successMessage">
+  {{ successMessage }}
+</div>
+
+<section class="card border-0 soft-shadow rounded-4 mb-4" *ngIf="supermarket">
+  <div class="card-body">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-8">
+        <div class="fs-1 mb-2">
+          <i class="bi bi-shop"></i>
+        </div>
+
+        <h1 class="h2 fw-bold mb-2">
+          {{ supermarket.name }}
+        </h1>
+
+        <p class="text-muted mb-0">
+          <i class="bi bi-geo-alt me-1"></i>
+          {{ supermarket.location }}
+        </p>
+      </div>
+
+      <div class="col-md-4 text-md-end">
+        <div class="mb-2">
+          <span class="badge text-bg-success me-1" *ngIf="hasDeliveryMethod('pickup')">
+            Pickup: {{ getDeliveryCost('pickup') | number: '1.2-2' }} €
+          </span>
+
+          <span class="badge text-bg-primary" *ngIf="hasDeliveryMethod('courier')">
+            Courier: {{ getDeliveryCost('courier') | number: '1.2-2' }} €
+          </span>
+        </div>
+
+        <p class="text-muted small mb-0" *ngIf="supermarket.openingHours">
+          <i class="bi bi-clock me-1"></i>
+          {{ supermarket.openingHours }}
+        </p>
+
+        <div class="mt-3">
+          <span class="badge text-bg-warning fs-6">
+            <i class="bi bi-star-fill me-1"></i>
+            {{ getRatingSummaryText() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="card border-0 soft-shadow rounded-4 mb-4" *ngIf="supermarket">
+  <div class="card-body">
+    <form class="row g-3 align-items-end" (ngSubmit)="applyFilters()">
+      <div class="col-md-5">
+        <label for="search" class="form-label fw-semibold"> Search products </label>
+        <input
+          id="search"
+          name="search"
+          type="text"
+          class="form-control"
+          [(ngModel)]="search"
+          placeholder="Search products in this supermarket"
+        />
+      </div>
+
+      <div class="col-md-3">
+        <label for="category" class="form-label fw-semibold"> Category </label>
+        <select
+          id="category"
+          name="category"
+          class="form-select"
+          [(ngModel)]="selectedCategory"
+          [disabled]="loadingCategories"
+        >
+          <option value="">All categories</option>
+          <option *ngFor="let category of categories" [value]="category._id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label for="sort" class="form-label fw-semibold"> Sort </label>
+        <select id="sort" name="sort" class="form-select" [(ngModel)]="selectedSort">
+          <option value="name_asc">Name A-Z</option>
+          <option value="name_desc">Name Z-A</option>
+          <option value="price_asc">Price low-high</option>
+          <option value="price_desc">Price high-low</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-grid gap-2">
+        <button type="submit" class="btn btn-dark" [disabled]="loading">Search</button>
+
+        <button type="button" class="btn btn-outline-secondary" (click)="clearFilters()">
+          Clear
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div class="text-center py-5" *ngIf="loading">
+  <div class="spinner-border text-dark"></div>
+  <p class="text-muted mt-3">Loading products...</p>
+</div>
+
+<section class="row g-4" *ngIf="!loading && products.length > 0">
+  <div class="col-sm-6 col-lg-3" *ngFor="let product of products">
+    <app-product-card
+      [product]="product"
+      [showSupermarketInfo]="false"
+      (addProduct)="addToCart($event)"
+    ></app-product-card>
+  </div>
+</section>
+
+<section class="card border-0 soft-shadow rounded-4 mt-4 mb-4" *ngIf="supermarket">
+  <div class="card-body">
+    <div
+      class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3"
+    >
+      <div>
+        <h2 class="h5 fw-bold mb-1">Latest customer reviews</h2>
+
+        <p class="text-muted small mb-0">
+          {{ getRatingSummaryText() }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-outline-dark btn-sm"
+        (click)="openReviewsSheet()"
+        [disabled]="reviews.length === 0"
+      >
+        <i class="bi bi-chat-square-heart me-1"></i>
+        See all reviews
+      </button>
+    </div>
+
+    <div class="row g-3" *ngIf="getLatestReviews().length > 0; else noLatestReviews">
+      <div class="col-md-4" *ngFor="let review of getLatestReviews()">
+        <app-review-card [review]="review" [compact]="true"></app-review-card>
+      </div>
+    </div>
+
+    <ng-template #noLatestReviews>
+      <div class="text-center text-muted py-4">
+        <i class="bi bi-chat-square-heart display-6 d-block mb-2"></i>
+        No reviews yet.
+      </div>
+    </ng-template>
+  </div>
+</section>
+
+<app-reviews-sheet
+  [open]="reviewsSheetOpen"
+  [title]="supermarket ? 'Reviews for ' + supermarket.name : 'Customer reviews'"
+  [reviews]="reviews"
+  [stats]="reviewStats"
+  (closeSheet)="closeReviewsSheet()"
+></app-reviews-sheet>
+
+<section class="text-center py-5" *ngIf="!loading && products.length === 0 && !errorMessage">
+  <div class="display-5 mb-3">
+    <i class="bi bi-basket"></i>
+  </div>
+
+  <h2 class="h4 fw-bold">No products found</h2>
+
+  <p class="text-muted">This supermarket has no products matching your search.</p>
+</section>
