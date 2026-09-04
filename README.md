@@ -26,3 +26,12 @@ Angular frontend for a supermarket marketplace developed as an academic web deve
 
 ```text
 FrontOffice/
+```
+
+## Running Locally
+
+```bash
+cd FrontOffice
+npm install
+npm start
+```
